@@ -17,7 +17,7 @@ function lab2()
     fprintf("---|----------|----|---------|--------\n");
     
     figure('Units', 'normalized', 'OuterPosition', [0 0 1 1]);
-    title('Метод поразрядного поиска');
+    title('Метод золотого сечения');
     tiledlayout(2, 2);
     
     for i = 1:length(eps)
