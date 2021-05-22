@@ -1,4 +1,4 @@
-function lab1()
+function lab2()
     f = @(x) (cosh((3*x.^3 + 2*x.^2 - 4*x + 5) / 3) + ...
         tanh((x.^3 - 3*2^(1/2)*x - 2) / (2*x + 2^(1/2))) - 2.5);
 
@@ -22,11 +22,11 @@ function lab1()
     
     for i = 1:length(eps)
         % Вычисление точки минимума и минимума функции
-        [X0, F0, X_S, F_S] = BitwiseSearch(0, 1, f, eps(i));
+        [X0, F0, A_S, B_S] = GoldenRatio(0, 1, f, eps(i));
         
         % Вывод строки таблицы результатов вычислений
         fprintf("%2i | %5f | %2i | %5.5f | %5.5f\n", ...
-            i, eps(i), length(X_S), X0, F0);
+            i, eps(i), length(A_S) + 1, X0, F0);
         
         % Вывод графика для данной точности
         ax = nexttile;
@@ -34,7 +34,7 @@ function lab1()
         plot(ax, X, Y, '-b','LineWidth',1.5);
         hold on;
         % Последовательность приближений
-        plot(ax, X_S, F_S, '*g','LineWidth', 2);
+        plot(ax, [A_S, B_S], [f(A_S), f(B_S)], '*g','LineWidth', 2);
         % Точка минимума
         plot(ax, X0, F0, '*r','LineWidth', 4);
         title(ax, sprintf("Точность Eps = %2.0e", eps(i)));
@@ -44,8 +44,7 @@ function lab1()
     
 end
 
-% Метод поразрядного поиска
-function [X, F, X_S, F_S] = BitwiseSearch(a, b, f, eps)
+function [X, F, A_S, B_S] = GoldenRatio(a, b, f, eps)
     arguments
         a   double           % Левая граница отрезка
         b   double           % Правая граница отрезка
@@ -53,34 +52,48 @@ function [X, F, X_S, F_S] = BitwiseSearch(a, b, f, eps)
         eps double           % Точность
     end
     
-    delta = (b - a) / 4.0;  % Шаг поиска
+    tau = 0.61803;
 
-    x0 = a;      % Начальное приближение точки минимума
-    f0 = f(x0);  % Начальное приближение минимума функции
-    
-    X_S = [];    % Массив всех приближений точки минимума
-    F_S = [];    % Массив всех приближений минимума функции
+    A_S = [];
+    B_S = [];
 
-    x1 = x0; 
-    f1 = f0;
+    l = b - a;
 
-    while abs(delta) > eps
-        X_S = [X_S, x1];
-        F_S = [F_S, f1];
+    x1 = b - tau * l; 
+    x2 = a + tau * l; 
 
-        x0 = x1;
-        f0 = f1;
+    f1 = f(x1);
+    f2 = f(x2);
 
-        x1 = x0 + delta;
-        f1 = f(x1);
+    while true
+        A_S = [A_S, a];
+        B_S = [B_S, b];
 
-        if (f1 < f0 && x1 > a && x1 < b)
-            continue;
+        if (f1 >= f2)
+            a = x1;
+            l = b - a;
+
+            x1 = x2; 
+            f1 = f2;
+
+            x2 = a + tau * l;
+            f2 = f(x2);
+        else
+            b = x2;
+            l = b - a;
+
+            x2 = x1;
+            f2 = f1;
+
+            x1 = b - tau * l;
+            f1 = f(x1);
         end
 
-        delta = -delta / 4.0;
+        if (l < 2 * eps)
+            break;
+        end
     end
 
-    X = x1; 
-    F = f1;
+    X = (a + b) / 2.0;
+    F = f(X);
 end
